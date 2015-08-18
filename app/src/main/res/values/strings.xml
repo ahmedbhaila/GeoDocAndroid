@@ -1,9 +1,10 @@
 <resources>
     <string name="app_name">GeoDoc</string>
-    <string name="title_activity_main">MainActivity</string>
+    <string name="title_activity_main">GeoDoc</string>
 
-    <string name="hello_world">Hello world!</string>
+    <string name="hello_world"></string>
     <string name="action_settings">Settings</string>
     <string name="location"></string>
     <string name="last_location">NA</string>
+    <string name="appURL">https://young-sierra-1628.herokuapp.com</string>
 </resources>

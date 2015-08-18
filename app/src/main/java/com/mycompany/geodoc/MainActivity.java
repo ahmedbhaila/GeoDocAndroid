@@ -12,6 +12,11 @@ import android.support.v7.app.ActionBarActivity;
 import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
+import android.view.View;
+import android.widget.Button;
+import android.widget.CompoundButton;
+import android.widget.RadioGroup;
+import android.widget.Switch;
 import android.widget.Toast;
 
 import com.google.android.gms.common.ConnectionResult;
@@ -29,27 +34,83 @@ public class MainActivity extends ActionBarActivity implements
     Location location;
     Intent intent;
     SharedPreferences sharedPref;
+    private RadioGroup radioGroup;
+    private static final String herokuAppURL = "http://young-sierra-1628.herokuapp.com";
+    private static final String openShiftAppURL = "http://geodoc-tricki.rhcloud.com";
+    AlarmManager alarm = null;
+    private PendingIntent pendingIntent;
+
+    private void setAlarm() {
+
+        buildGoogleApiClient();
+        mGoogleApiClient.connect();
+
+        Calendar cal = Calendar.getInstance();
+        alarm = (AlarmManager) getSystemService(Context.ALARM_SERVICE);
+        alarm.setRepeating(AlarmManager.RTC_WAKEUP, System.currentTimeMillis(),
+                1000 * 60, createPendingIntent());
+    }
+
+    private void cancelAlarm() {
+        AlarmManager alarm = (AlarmManager) getSystemService(Context.ALARM_SERVICE);
+        alarm.cancel(createPendingIntent());
+    }
+
+    private PendingIntent createPendingIntent() {
+        intent = new Intent(this, SendLocationService.class);
+        PendingIntent pIntent = PendingIntent.getService(this, 0, intent, 0);
+        return pIntent;
+    }
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
-        Log.i("SendLocation", "Location service is " + checkIfGooglePlayServicesAreAvailable());
-        buildGoogleApiClient();
-        mGoogleApiClient.connect();
-
-        //startService(new Intent(this, SendLocationService.class));
-        Calendar cal = Calendar.getInstance();
-
-        intent = new Intent(this, SendLocationService.class);
-        PendingIntent pIntent = PendingIntent.getService(this, 0, intent, 0);
-        AlarmManager alarm = (AlarmManager) getSystemService(Context.ALARM_SERVICE);
-        alarm.setRepeating(AlarmManager.RTC_WAKEUP, cal.getTimeInMillis(),
-                20 * 1000, pIntent);
-
         sharedPref = PreferenceManager.getDefaultSharedPreferences(this);
-        sharedPref.edit().remove(getString(R.string.last_location)).commit();
+        SharedPreferences.Editor editor = sharedPref.edit();
+        editor.remove(getString(R.string.last_location));
+        editor.commit();
+
+        editor.putString(getString(R.string.appURL), herokuAppURL);
+        editor.commit();
+
+        Switch toggle = (Switch) findViewById(R.id.switch1);
+        toggle.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
+            public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
+                if (isChecked) {
+                    setAlarm();
+                } else {
+                    cancelAlarm();
+                }
+            }
+        });
+
+        Button button = (Button) findViewById(R.id.button);
+        button.setOnClickListener(new View.OnClickListener() {
+            public void onClick(View v) {
+                SharedPreferences.Editor editor = sharedPref.edit();
+                editor.remove(getString(R.string.last_location));
+                editor.commit();
+            }
+        });
+
+        radioGroup = (RadioGroup) findViewById(R.id.radioGroup);
+
+        radioGroup.setOnCheckedChangeListener(new RadioGroup.OnCheckedChangeListener() {
+            @Override
+            public void onCheckedChanged(RadioGroup group, int checkedId) {
+                SharedPreferences.Editor editor = sharedPref.edit();
+                if(checkedId == R.id.openShiftButton) {
+                    editor.putString(getString(R.string.appURL), openShiftAppURL);
+                } else {
+                    editor.putString(getString(R.string.appURL), herokuAppURL);
+                }
+                editor.commit();
+            }
+        });
+
+
     }
 
     @Override
@@ -61,12 +122,8 @@ public class MainActivity extends ActionBarActivity implements
 
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
-        // Handle action bar item clicks here. The action bar will
-        // automatically handle clicks on the Home/Up button, so long
-        // as you specify a parent activity in AndroidManifest.xml.
         int id = item.getItemId();
 
-        //noinspection SimplifiableIfStatement
         if (id == R.id.action_settings) {
             return true;
         }
@@ -85,16 +142,10 @@ public class MainActivity extends ActionBarActivity implements
         location = LocationServices.FusedLocationApi.getLastLocation(
                 mGoogleApiClient);
         String locationString = location.getLatitude() + "," + location.getLongitude();
-        Log.i("SendLocation", "Location is " + locationString);
 
         SharedPreferences.Editor editor = sharedPref.edit();
         editor.putString(getString(R.string.location), locationString);
         editor.commit();
-
-        //if (location != null) {
-          //  Toast.makeText(this, location.getLongitude() + " , " + location.getLatitude() + " : " + location.getAccuracy(), Toast.LENGTH_LONG).show();
-       //}
-
     }
 
     @Override

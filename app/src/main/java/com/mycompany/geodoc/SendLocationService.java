@@ -10,6 +10,8 @@ import android.os.IBinder;
 import android.preference.PreferenceManager;
 import android.util.Log;
 
+import java.util.Calendar;
+
 public class SendLocationService extends Service {
 
 
@@ -36,6 +38,7 @@ public class SendLocationService extends Service {
         Context context = getApplicationContext();
         SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(context);
         String location = prefs.getString(getString(R.string.location), "");
+        Calendar calendar = Calendar.getInstance();
         Log.i("SendLocationService", "My location is " + location);
         Log.i("SendLocationService", "My last location is " + prefs.getString(getString(R.string.last_location), ""));
 
@@ -48,12 +51,9 @@ public class SendLocationService extends Service {
             editor.putString(getString(R.string.last_location), location);
             editor.commit();
 
-            //Log.i("SendLocationService", "My location is " + location);
-
-
-
-            new HttpRequestTask(getApplicationContext()).execute(location, getGoogleAccount(context));
-
+            new HttpRequestTask(getApplicationContext()).execute(location, getGoogleAccount(context),
+                    String.valueOf(calendar.getTimeInMillis()), calendar.getTimeZone().getDisplayName(),
+                    prefs.getString(getString(R.string.appURL), ""));
 
         }
         return START_NOT_STICKY;

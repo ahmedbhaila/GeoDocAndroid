@@ -7,8 +7,10 @@ import android.app.NotificationManager;
 import android.app.PendingIntent;
 import android.content.Context;
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.net.Uri;
 import android.os.AsyncTask;
+import android.preference.PreferenceManager;
 import android.support.v4.app.NotificationCompat;
 import android.util.Log;
 
@@ -25,24 +27,26 @@ public class HttpRequestTask extends AsyncTask<String, String, String> {
     protected Context context;
     protected String missedCallNumber;
     protected String clientId;
-    private static final String appURL = "https://young-sierra-1628.herokuapp.com";
-
+    private String appURL;
     public HttpRequestTask(Context context) {
         this.context = context;
     }
     @Override
     protected String doInBackground(String... params) {
         try {
-            final String lookupURL = appURL + "/places/{latlng}/document/status?profile={profile}";
-            //"/locate/{client_id}/{number}/lookup";
+            appURL = params[4];
+            final String lookupURL = appURL + "/places/{latlng}/document/status?profile={profile}&time={time}&timezone={timezone}";
 
             RestTemplate restTemplate = new RestTemplate();
             restTemplate.getMessageConverters().add(new StringHttpMessageConverter());
+
             HashMap<String, String> param = new HashMap<>();
             param.put("latlng", params[0]);
             param.put("profile", params[1]);
+            param.put("time", params[2]);
+            param.put("timezone", params[3]);
             String status = restTemplate.getForObject(lookupURL, String.class, param);
-            //missedCallNumber = params[1];
+
             clientId = params[1];
             return status;
         } catch (Exception e) {
@@ -54,14 +58,14 @@ public class HttpRequestTask extends AsyncTask<String, String, String> {
 
     @Override
     protected void onPostExecute(String status) {
-        if(status.equals("true")) {
+        if(status != null && status.equals("true")) {
             NotificationCompat.Builder mBuilder =
                     new NotificationCompat.Builder(context)
                             .setSmallIcon(R.drawable.abc_ab_share_pack_mtrl_alpha)
-                            .setContentTitle("Enhanced Call Information Available")
-                            .setContentText("Enhanced Call Information available for this missed called: " + missedCallNumber);
+                            .setContentTitle("Files found")
+                            .setContentText("There are files found at this location");
 
-            String documentURL = appURL + "/places/" + clientId + "/documents";
+            String documentURL = appURL + "/getFiles.html?clientId=" + clientId;
             Intent resultIntent = new Intent(Intent.ACTION_VIEW);
             resultIntent.setData(Uri.parse(documentURL));
             PendingIntent resultPendingIntent =
@@ -72,15 +76,19 @@ public class HttpRequestTask extends AsyncTask<String, String, String> {
                             PendingIntent.FLAG_UPDATE_CURRENT
                     );
             mBuilder.setContentIntent(resultPendingIntent);
+            mBuilder.setAutoCancel(true);
 
-            // Sets an ID for the notification
             int mNotificationId = 001;
-            // Gets an instance of the NotificationManager service
             NotificationManager mNotifyMgr =
                     (NotificationManager) context.getSystemService(context.NOTIFICATION_SERVICE);
-            // Builds the notification and issues it.
             mNotifyMgr.notify(mNotificationId, mBuilder.build());
 
+        }
+        else {
+            SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(context);
+            SharedPreferences.Editor editor = prefs.edit();
+            editor.remove(context.getString(R.string.last_location));
+            editor.commit();
         }
 
 

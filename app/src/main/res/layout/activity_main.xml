@@ -1,9 +1,67 @@
 <RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools" android:layout_width="match_parent"
     android:layout_height="match_parent"
+    android:background="@drawable/bg"
     tools:context="com.mycompany.geodoc.MainActivity">
 
     <TextView android:text="@string/hello_world" android:layout_width="wrap_content"
-        android:layout_height="wrap_content" />
+        android:layout_height="wrap_content"
+        android:id="@+id/textView" />
+
+    <Switch
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Service"
+        android:id="@+id/switch1"
+        android:layout_marginTop="65dp"
+        android:checked="false"
+        android:layout_below="@+id/textView"
+        android:layout_centerHorizontal="true" />
+
+    <Button
+        style="?android:attr/buttonStyleSmall"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Delete Location Cache"
+        android:id="@+id/button"
+        android:layout_marginTop="35dp"
+        android:layout_below="@+id/switch1"
+        android:layout_centerHorizontal="true" />
+
+    <RadioGroup xmlns:android="http://schemas.android.com/apk/res/android"
+        android:layout_width="fill_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:layout_marginTop="127dp"
+        android:layout_below="@+id/button"
+        android:layout_alignStart="@+id/button"
+        android:id="@+id/radioGroup">
+    <RadioButton
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Heroku"
+        android:id="@+id/herokuButton"
+        android:layout_below="@+id/button"
+        android:layout_centerHorizontal="true"
+        android:checked="true" />
+
+    <RadioButton
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="OpenShift"
+        android:id="@+id/openShiftButton"
+        android:checked="false"
+        android:layout_below="@+id/herokuButton"
+        android:layout_alignStart="@+id/herokuButton" />
+    </RadioGroup>
+
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:textAppearance="?android:attr/textAppearanceMedium"
+        android:text="Webapp Host"
+        android:id="@+id/textView2"
+        android:layout_centerVertical="true"
+        android:layout_alignStart="@+id/radioGroup" />
 
 </RelativeLayout>
