@@ -56,6 +56,6 @@ public class SendLocationService extends Service {
                     prefs.getString(getString(R.string.appURL), ""));
 
         }
-        return START_NOT_STICKY;
+        return START_STICKY;
     }
 }
